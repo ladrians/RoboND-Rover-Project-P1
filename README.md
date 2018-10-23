@@ -254,7 +254,9 @@ The resolution used for the simulation is:
 * Graphics Quality: Fastest
 * Frames per second: 30 to 33 FPS.
 
-The best result I could get can be checked [here](./output/P1_samplevideo.mp4)
+The best result I could get can be checked [here](./output/P1_samplevideo.mp4), a sample image:
+
+![Final sample image](./output/final_sample_result.png)
 
 ### Improvements
 

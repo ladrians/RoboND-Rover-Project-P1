@@ -1,6 +1,6 @@
 # **Search and Sample Return** 
 
-My solution for the Robotics NanoDegree [Project #1](https://github.com/ladrians/RoboND-Rover-Project-P1 project).
+My solution for the Robotics NanoDegree [Project #1](https://github.com/ladrians/RoboND-Rover-Project-P1).
 
 ## Introduction
 
@@ -58,7 +58,7 @@ The correct usage of these functions details how far things are relative to the 
 
 ### Process Image
 
-The `process_image()` function represents the perception steps needed to perform image analysis and mapping. All previous functions are combined and mapped to an existing map (called "ground truth" map of the world, where white pixels represent navigable terrain).
+The `process_image` function represents the perception steps needed to perform image analysis and mapping. All previous functions are combined and mapped to an existing map (called "ground truth" map of the world, where white pixels represent navigable terrain).
 
 * `perspect_transfrom` is executed.
 * `color thresholding` is executed to identify navigable terrain/obstacles/rock samples using `color_thresh` and `yellow_thresh` functions.
@@ -77,32 +77,25 @@ The process is repeated for all the images recorded and then stored as a video u
 
 The `perception_step` function within the `perception.py` file shares all the same functions as the jupyter notebook plus some modifications. The differences starts on step 7); where I added logic to improve rover fidelity.
 
-```
-if is_valid_position(Rover.pitch, Rover.roll):
+```if is_valid_position(Rover.pitch, Rover.roll):
 	Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
 	Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
-	Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
-```
+	Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1```
 
 The `is_valid_position` function is in charge of evaluating the accuracy of the image where the truth map can only be updated if the roll and pitch angles are near zero. This way, the fidelity goes from 40% to 80%.
 
-```
-def is_valid_position(pitch, roll):
+```def is_valid_position(pitch, roll):
     # Your perspective transform is technically only valid when roll and pitch angles are near zero
-    return ((pitch > angle_lower_bound or pitch < angle_upper_bound) and (roll > angle_lower_bound or roll < angle_upper_bound))
-```
+    return ((pitch > angle_lower_bound or pitch < angle_upper_bound) and (roll > angle_lower_bound or roll < angle_upper_bound))```
 
 Another modification is to detect rocks and move towards it (when possible) to pick them up. I added a `is_rock_ahead` function within step 8):
 
-```
-def is_rock_ahead(rock_thresh):
-    return rock_thresh.any()
-```
+```def is_rock_ahead(rock_thresh):
+    return rock_thresh.any()```
 
 The rover behavior is changed if a rock is detected:	
 
-```
-if is_rock_ahead(rock_thresh):
+```if is_rock_ahead(rock_thresh):
 	dist, angles = to_polar_coords(xpix_rock, ypix_rock)
 	Rover.sample_detected = True
 	Rover.rock_spot_count = 0 # The rover will reset the rock spot counter
@@ -112,8 +105,7 @@ if is_rock_ahead(rock_thresh):
 	Rover.worldmap[rock_ycen, rock_xcen, 1] += 1
 	Rover.vision_image[:, :, 1] = rock_thresh * 255
 else:
-	dist, angles = to_polar_coords(xpix_terrain, ypix_terrain)
-```
+	dist, angles = to_polar_coords(xpix_terrain, ypix_terrain)```
 
 The new variable `sample_detected` will mark the new state (to be processed within `decision.py`) and the rock location is tracked.
 
@@ -125,18 +117,15 @@ From the original code I added two new states `sample_detected` and `stuck`. The
 
 At the beginnig of the process the Home position is set.
 
-```
-if Rover.at_home: # Record Home
+```if Rover.at_home: # Record Home
 	Rover.start_position = Rover.pos
-	Rover.at_home = False
-```
+	Rover.at_home = False```
 
 #### Rock picking
 
 The perception step will enable the `Rover.sample_detected` variable when a rock is detected and its location is tracked. The rover will go directly to it and when it is within range (`Rover.near_sample` variable) the gripper is used.
 
-```
-if Rover.sample_detected: # Try collecting a rock
+```if Rover.sample_detected: # Try collecting a rock
 	if Rover.near_sample:
 		Rover.brake = Rover.brake_set
 		Rover.throttle = 0
@@ -158,23 +147,19 @@ if Rover.sample_detected: # Try collecting a rock
 			Rover.throttle = -0.1
 		Rover.brake = 0
 		Rover.steer = get_steer_angle(Rover.nav_angles, -5, 15) # Bias to the right
-	Rover.sample_detected = False
-```
+	Rover.sample_detected = False```
 
 Once it finished, it resumes to exploration (`forward` mode).
 
-```
-# If in a state where want to pickup a rock send pickup command
+```# If in a state where want to pickup a rock send pickup command
 if Rover.near_sample and Rover.vel == 0 and not Rover.picking_up:
 	Rover.send_pickup = True
 	Rover.sample_detected = False
-	Rover.mode = 'forward'
-```
+	Rover.mode = 'forward'```
 
 Notice that the exploration has a explicitly bias set to the right.
 
-```
-# Added a bias to the default steering angle
+```# Added a bias to the default steering angle
 def get_biased_steer_angle(nav_angles, min, max, bias):
     return get_steer_angle(nav_angles, min, max)+bias
 
@@ -183,15 +168,13 @@ def get_steer_angle(nav_angles, min, max):
     try:
         return np.clip(np.mean(nav_angles * 180 / np.pi), min, max)
     except:
-        return 0.
-```
+        return 0.```
 
 #### Unstuck Rover
 
 Another new state was added to try to `unstuck` the rover in certain conditions. Basically if the rover is in `forward` mode and not moving the new state is set.
 
-```
-if abs(Rover.vel) < 0.05:
+```if abs(Rover.vel) < 0.05:
 	# Wait a little
 	Rover.vel_count += 1
 	if Rover.vel_count > 400:
@@ -200,13 +183,11 @@ if abs(Rover.vel) < 0.05:
 		Rover.throttle = 0
 		Rover.brake = 0
 		Rover.steer = 0
-		Rover.mode = 'stuck' # change mode
-```
+		Rover.mode = 'stuck' # change mode```
 
 For a few frames the rover will go in reverse mode and then continue in `forward` mode.
 
-```
-elif Rover.mode == 'stuck':
+```elif Rover.mode == 'stuck':
 	#print("stuck Rover.vel", Rover.vel)
 	Rover.stuck_count += 1 # accumulate the count
 	Rover.steer = 0
@@ -216,27 +197,22 @@ elif Rover.mode == 'stuck':
 		# Reset counters and change mode
 		Rover.stuck_count = 0
 		Rover.steer = 0
-		Rover.mode = 'forward'
-```
+		Rover.mode = 'forward'```
 
 ### Drive Rover
 
 A minor modification was set on the `RoverState` class to change the thresholds for stopping and moving forward, it makes the difference when targeting the rock samples.
 
-```
-self.stop_forward = 75 # Threshold to initiate stopping
-self.go_forward = 600 # Threshold to go forward again
-```
+```self.stop_forward = 75 # Threshold to initiate stopping
+self.go_forward = 600 # Threshold to go forward again```
 
 I added some extra parameters to keep track of the new states, transitions and Home position.
 
-```
-# Extra parameters added
+```# Extra parameters added
 self.sample_detected = False # To flag a rock detection
 self.start_position = None # Home position
 self.at_home = True # To flag the Home position
-self.vel_count = 0 # Start the velocity count at zero
-```
+self.vel_count = 0 # Start the velocity count at zero```
 
 ### Execution
 
@@ -269,4 +245,4 @@ In some cases the routine to pick a rock does not work, specially for those case
 ### Resources
 
 * [Project Walkthrough](https://www.youtube.com/watch?v=oJA6QHDPdQw)
-* [Project Baseline](https://github.com/ladrians/RoboND-Rover-Project-P1 project)
+* [Project Baseline](https://github.com/ladrians/RoboND-Rover-Project-P1)

@@ -71,6 +71,8 @@ The `process_image` function represents the perception steps needed to perform i
 
 The process is repeated for all the images recorded and then stored as a video using the `moviepy` functions. The result can be checked [here](./output/test_mapping2.mp4).
 
+[![notebook result]](./output/test_mapping2.mp4)
+
 ## Autonomous Navigation and Mapping
 
 ### Perception step
@@ -255,6 +257,8 @@ The resolution used for the simulation is:
 * Frames per second: 30 to 33 FPS.
 
 The best result I could get can be checked [here](./output/P1_samplevideo.mp4)
+
+[![Project result]](./output/P1_samplevideo.mp4)
 
 ### Improvements
 

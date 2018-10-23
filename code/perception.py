@@ -101,7 +101,6 @@ def perspect_transform(img, src, dst):
 # Validate the pitch and roll for accurate mapping (it increases fidelity)
 def is_valid_position(pitch, roll):
     # Your perspective transform is technically only valid when roll and pitch angles are near zero
-    #return ((pitch > 359.5 or pitch < 0.5) and (roll > 359.5 or roll < 0.5))
     return ((pitch > angle_lower_bound or pitch < angle_upper_bound) and (roll > angle_lower_bound or roll < angle_upper_bound))
 
 # Check if a Rock is detected
